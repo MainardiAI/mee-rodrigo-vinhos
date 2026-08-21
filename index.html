@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rodrigo — vinhos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#171017; --bg-deep:#0F0A0F; --surface:#221824; --surface-u:#3A2230;
+    --text:#EFE7DD; --muted:#9A8C88; --accent:#B23A48; --accent-soft:#D98A94; --line:#2E2230;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif; background:var(--bg-deep); color:var(--text);
+    -webkit-font-smoothing:antialiased; display:flex; justify-content:center;
+  }
+  .app{width:100%;max-width:680px;height:100vh;background:var(--bg);display:flex;flex-direction:column}
+
+  header{padding:26px 24px 18px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand h1{font-family:'Fraunces',serif;font-size:30px;font-weight:600;letter-spacing:-.01em}
+  .brand .rule{width:26px;height:2px;background:var(--accent);display:inline-block;margin-bottom:6px}
+  .brand .k{color:var(--muted);font-size:13px}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+
+  .scroll{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:18px}
+  .scroll::-webkit-scrollbar{width:8px}
+  .scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+  .rise{animation:rise .28s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .intro p{font-size:15.5px;line-height:1.55;color:var(--text)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{border:1px solid var(--line);color:var(--muted);background:transparent;border-radius:999px;
+    padding:7px 13px;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit}
+  .chip:hover{border-color:var(--accent);color:var(--text)}
+
+  .row{display:flex;flex-direction:column}
+  .row.user{align-items:flex-end}
+  .row.rodrigo{align-items:flex-start;gap:8px}
+  .bubble{max-width:86%;font-size:15px;line-height:1.55;white-space:pre-wrap}
+  .bubble.user{background:var(--surface-u);color:var(--text);border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:14.5px}
+  .bubble.rodrigo{background:var(--surface);color:var(--text);border-radius:14px 14px 14px 4px;padding:12px 15px}
+
+  .bottle{display:block;text-decoration:none;background:var(--bg-deep);border:1px solid var(--line);
+    border-left:3px solid var(--accent);border-radius:10px;padding:11px 14px;max-width:86%;width:100%}
+  .bottle .nome{color:var(--text);font-size:14.5px;font-weight:600}
+  .bottle .meta{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .bottle .foot{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+  .bottle .preco{color:var(--accent-soft);font-size:14px;font-weight:500}
+  .bottle .ver{color:var(--accent-soft);font-size:12.5px}
+  .bottle:hover .ver{text-decoration:underline}
+
+  .typing{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;font-style:italic}
+  .dot{animation:blink 1.2s infinite both}
+  .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+  .composer{padding:16px 24px;border-top:1px solid var(--line)}
+  .box{display:flex;align-items:flex-end;gap:8px;background:var(--bg-deep);border:1px solid var(--line);
+    border-radius:14px;padding:8px 8px 8px 14px}
+  textarea{flex:1;resize:none;background:transparent;border:none;outline:none;color:var(--text);
+    font-size:14.5px;line-height:1.4;max-height:120px;padding:6px 0;font-family:inherit}
+  textarea::placeholder{color:var(--muted)}
+  .send{background:var(--line);color:var(--muted);border:none;border-radius:10px;width:38px;height:38px;
+    display:flex;align-items:center;justify-content:center;cursor:default;transition:background .15s;flex-shrink:0}
+  .send.on{background:var(--accent);color:#fff;cursor:pointer}
+  .note{color:var(--muted);font-size:11px;margin-top:8px;text-align:center}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  @media (max-width:520px){header{padding:20px 18px 14px}.scroll{padding:18px}.composer{padding:14px 18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>Rodrigo</h1>
+      <span class="rule"></span>
+      <span class="k">vinhos</span>
+    </div>
+    <div class="sub">busca no catálogo da Mistral em tempo real</div>
+  </header>
+
+  <div class="scroll" id="scroll">
+    <div class="intro rise" id="intro">
+      <p>Me diz o que você quer beber — a ocasião, a comida, quanto quer gastar. Eu acho no catálogo da Mistral.</p>
+      <div class="chips">
+        <button class="chip" onclick="exemplo(this)">um tinto pra um jantar de bacalhau</button>
+        <button class="chip" onclick="exemplo(this)">presente pra quem manja muito, até R$300</button>
+        <button class="chip" onclick="exemplo(this)">quero guardar uma garrafa por uns 10 anos</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="box">
+      <textarea id="input" rows="1" placeholder="diz o que você quer beber…"></textarea>
+      <button class="send" id="send" aria-label="enviar" onclick="enviar()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
+    </div>
+    <p class="note">Protótipo · o Rodrigo lê o catálogo da Mistral ao vivo — confirme preço e estoque no site</p>
+  </div>
+</div>
+
+<script>
+const scroll = document.getElementById('scroll');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send');
+const historico = []; // {role, content} — enviado ao backend a cada turno
+
+function toBottom(){ scroll.scrollTo({top:scroll.scrollHeight, behavior:'smooth'}); }
+
+input.addEventListener('input', () => {
+  sendBtn.classList.toggle('on', input.value.trim().length > 0);
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+});
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); enviar(); }
+});
+
+function exemplo(btn){ input.value = btn.textContent; input.dispatchEvent(new Event('input')); enviar(); }
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function addUser(text){
+  const intro = document.getElementById('intro');
+  if (intro) intro.remove();
+  const row = document.createElement('div');
+  row.className = 'row user rise';
+  row.innerHTML = `<div class="bubble user">${escapeHtml(text)}</div>`;
+  scroll.appendChild(row); toBottom();
+}
+
+function addRodrigo(fala, garrafas){
+  const row = document.createElement('div');
+  row.className = 'row rodrigo rise';
+  let html = `<div class="bubble rodrigo">${escapeHtml(fala)}</div>`;
+  (garrafas||[]).forEach(b => {
+    const meta = [b.produtor, b.regiao].filter(Boolean).map(escapeHtml).join(' · ');
+    // Fallback: se a url não for do produto, direciona para busca com o nome do vinho
+    const urlValida = b.url && b.url.includes('mistral.com.br/produto');
+    const href = urlValida
+      ? escapeHtml(b.url)
+      : `https://www.mistral.com.br/busca?q=${encodeURIComponent(b.nome)}`;
+    const labelLink = urlValida ? 'ver na Mistral →' : 'buscar na Mistral →';
+    html += `<a class="bottle" href="${href}" target="_blank" rel="noopener">
+      <div class="nome">${escapeHtml(b.nome)}</div>
+      <div class="meta">${meta}</div>
+      <div class="foot"><span class="preco">${escapeHtml(b.preco||'')}</span><span class="ver">${labelLink}</span></div>
+    </a>`;
+  });
+  row.innerHTML = html;
+  scroll.appendChild(row); toBottom();
+}
+
+let typingEl = null;
+function showTyping(){
+  typingEl = document.createElement('div');
+  typingEl.className = 'typing rise';
+  typingEl.innerHTML = `<span>abrindo o catálogo</span><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>`;
+  scroll.appendChild(typingEl); toBottom();
+}
+function hideTyping(){ if(typingEl){ typingEl.remove(); typingEl = null; } }
+
+let loading = false;
+async function enviar(){
+  const text = input.value.trim();
+  if (!text || loading) return;
+
+  addUser(text);
+  historico.push({ role:'user', content:text });
+  input.value = ''; input.style.height='auto'; sendBtn.classList.remove('on');
+  loading = true; showTyping();
+
+  try{
+    const res = await fetch('/api/recommend', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ historico })
+    });
+    const data = await res.json();
+    hideTyping();
+
+    if (!data || data.sucesso === false){
+      addRodrigo('Deu ruim aqui do meu lado. Tenta de novo daqui a pouco.', []);
+    } else {
+      addRodrigo(data.fala, data.garrafas);
+      historico.push({ role:'assistant', content:data.fala }); // só a fala volta pro contexto
+    }
+  } catch(e){
+    hideTyping();
+    addRodrigo('Deu ruim na conexão. Tenta de novo.', []);
+  } finally {
+    loading = false;
+  }
+}
+</script>
+</body>
+</html>
