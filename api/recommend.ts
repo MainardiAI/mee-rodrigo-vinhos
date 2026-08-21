@@ -61,28 +61,54 @@ interface Garrafa {
   url: string;
 }
 
-// Extrai a fala do Rodrigo + as garrafas estruturadas do texto do modelo
+// Extrai a fala do Rodrigo + as garrafas estruturadas do texto do modelo.
+// Robusto a fragmentação: o web search às vezes pica o texto e o bloco
+// ===GARRAFAS=== chega partido. Recuperamos os objetos mesmo assim.
 function parseReply(raw: string): { fala: string; garrafas: Garrafa[] } {
   const marker = "===GARRAFAS===";
-  const i = raw.indexOf(marker);
-  if (i === -1) return { fala: raw.trim(), garrafas: [] };
+  const idx = raw.indexOf(marker);
 
-  const fala = raw.slice(0, i).trim();
-  let garrafas: Garrafa[] = [];
-  try {
-    const rest = raw.slice(i + marker.length).replace(/```json|```/g, "").trim();
-    const m = rest.match(/\[[\s\S]*\]/);
-    if (m) {
-      const parsed = JSON.parse(m[0]);
-      if (Array.isArray(parsed)) {
-        garrafas = parsed
-          .filter((g) => g && typeof g.url === "string" && g.url.includes("mistral.com.br"))
-          .slice(0, 2);
+  const fala = (idx === -1 ? raw : raw.slice(0, idx))
+    .replace(/\{[^{}]*"url"\s*:\s*"[^"]*mistral\.com\.br[^"]*"[^{}]*\}/g, "") // tira garrafa vazada
+    .replace(/===GARRAFAS===/g, "")
+    .replace(/\[\s*\]/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  // Junta tudo que vem depois do marcador; se o marcador se perdeu na
+  // fragmentação, varre o texto inteiro atrás dos objetos de garrafa.
+  const zonaGarrafas = idx === -1 ? raw : raw.slice(idx + marker.length);
+
+  const garrafas: Garrafa[] = [];
+  const vistos = new Set<string>();
+
+  // Casa cada objeto {...} individualmente (tolera array quebrado / lixo entre eles)
+  const blocos = zonaGarrafas.match(/\{[^{}]*\}/g) || [];
+  for (const b of blocos) {
+    try {
+      const obj = JSON.parse(b);
+      if (
+        obj &&
+        typeof obj.url === "string" &&
+        obj.url.includes("mistral.com.br") &&
+        obj.nome &&
+        !vistos.has(obj.url)
+      ) {
+        vistos.add(obj.url);
+        garrafas.push({
+          nome: String(obj.nome || ""),
+          produtor: String(obj.produtor || ""),
+          regiao: String(obj.regiao || ""),
+          preco: String(obj.preco || ""),
+          url: String(obj.url || ""),
+        });
       }
+    } catch (e) {
+      // objeto quebrado — ignora e segue
     }
-  } catch (e) {
-    garrafas = [];
+    if (garrafas.length >= 2) break;
   }
+
   return { fala, garrafas };
 }
 
