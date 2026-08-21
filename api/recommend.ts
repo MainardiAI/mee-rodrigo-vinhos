@@ -116,27 +116,43 @@ export default async function handler(
       .filter((t) => t && (t.role === "user" || t.role === "assistant") && typeof t.content === "string")
       .map((t) => ({ role: t.role, content: t.content }));
 
-    const message = await client.messages.create({
-      model: "claude-sonnet-5",
-      max_tokens: 1024,
-      system: SYSTEM,
-      messages,
-      tools: [
-        {
-          // Web search nativo do Claude — sem SerpAPI.
-          type: "web_search_20250305",
-          name: "web_search",
-          max_uses: 4,
-        } as any,
-      ],
-    });
+    // Chama o modelo; se vier vazio ou falhar, tenta mais uma vez sozinho.
+    async function pedirAoRodrigo(): Promise<string> {
+      const message = await client.messages.create({
+        model: "claude-sonnet-5",
+        max_tokens: 1024,
+        system: SYSTEM,
+        messages,
+        tools: [
+          {
+            // Web search nativo do Claude — sem SerpAPI.
+            type: "web_search_20250305",
+            name: "web_search",
+            max_uses: 3,
+          } as any,
+        ],
+      });
+      return (message.content || [])
+        .filter((b: any) => b.type === "text")
+        .map((b: any) => b.text)
+        .join("\n")
+        .trim();
+    }
 
-    // Junta todos os blocos de texto (pode haver texto entre buscas)
-    const textOut = (message.content || [])
-      .filter((b: any) => b.type === "text")
-      .map((b: any) => b.text)
-      .join("\n")
-      .trim();
+    let textOut = "";
+    try {
+      textOut = await pedirAoRodrigo();
+    } catch (e) {
+      console.error("[RODRIGO] 1a tentativa falhou:", e);
+    }
+    // Retry automático: cobre a intermitência da busca ao vivo.
+    if (!textOut) {
+      try {
+        textOut = await pedirAoRodrigo();
+      } catch (e) {
+        console.error("[RODRIGO] 2a tentativa falhou:", e);
+      }
+    }
 
     const { fala, garrafas } = parseReply(textOut);
 
