@@ -40,6 +40,7 @@ CATÁLOGO (regra dura):
 - Nunca invente vinho, preço ou nota. Se não achar nada que sirva, fala isso e pede pra ajustar o pedido (preço, ocasião).
 - Não narre a busca ("deixa eu procurar"). Responde só com a indicação.
 - Se o pedido vier muito vago, faz UMA pergunta curta (preço ou ocasião). Só uma.
+- PEDIDO GRANDE (4+ vinhos ou um vinho pra cada prato de um menu): não tenta achar todos de uma vez. Resolve os 2 mais importantes de verdade (com busca e link real) e, na sua fala, oferece continuar: ex. "começo por esses dois; quer que eu ache os outros?". Melhor dois certos do que cinco pela metade.
 
 FORMATO DA RESPOSTA — obrigatório:
 Primeiro sua fala (curta, na sua voz).
@@ -125,7 +126,7 @@ export default async function handler(
           // Web search nativo do Claude — sem SerpAPI.
           type: "web_search_20250305",
           name: "web_search",
-          max_uses: 5,
+          max_uses: 4,
         } as any,
       ],
     });
@@ -146,9 +147,15 @@ export default async function handler(
     });
   } catch (error) {
     console.error("[RODRIGO] Erro:", error);
-    res.status(500).json({
-      sucesso: false,
-      erro: error instanceof Error ? error.message : "Erro ao processar",
+    const msg = error instanceof Error ? error.message : "";
+    // Timeout / pedido grande demais → resposta na voz do Rodrigo, não erro seco.
+    const pareceTimeout = /timeout|timed out|aborted|ETIMEDOUT|FUNCTION_INVOCATION_TIMEOUT/i.test(msg);
+    res.status(200).json({
+      sucesso: true,
+      fala: pareceTimeout
+        ? "Esse pedido tá grande e demorou demais pra eu varrer tudo. Me pede uns 2 vinhos por vez que eu dou conta e acerto melhor."
+        : "Deu ruim aqui do meu lado. Tenta de novo daqui a pouco, ou me dá mais detalhe.",
+      garrafas: [],
     });
   }
 }
