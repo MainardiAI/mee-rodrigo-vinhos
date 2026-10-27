@@ -21,11 +21,8 @@
   .app{width:100%;max-width:680px;height:100vh;background:var(--bg);display:flex;flex-direction:column}
 
   header{padding:26px 24px 18px;border-bottom:1px solid var(--line)}
-  .brand{display:flex;align-items:baseline;gap:12px}
-  .brand h1{font-family:'Fraunces',serif;font-size:30px;font-weight:600;letter-spacing:-.01em}
-  .brand .rule{width:26px;height:2px;background:var(--accent);display:inline-block;margin-bottom:6px}
-  .brand .k{color:var(--muted);font-size:13px}
-  .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+  .brand-logo{display:block;height:32px;width:auto}
+  .brand-tagline{color:var(--text);font-size:16px;margin-top:6px;letter-spacing:.01em}
 
   .scroll{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:18px}
   .scroll::-webkit-scrollbar{width:8px}
@@ -79,12 +76,8 @@
 <body>
 <div class="app">
   <header>
-    <div class="brand">
-      <h1>Rodrigo</h1>
-      <span class="rule"></span>
-      <span class="k">vinhos</span>
-    </div>
-    <div class="sub">busca no catálogo da Mistral em tempo real</div>
+    <h1><img src="Logo_SOMEE_Red.png" alt="Someelier" class="brand-logo"></h1>
+    <p class="brand-tagline">Decantando suas escolhas</p>
   </header>
 
   <div class="scroll" id="scroll">
@@ -100,7 +93,7 @@
 
   <div class="composer">
     <div class="box">
-      <textarea id="input" rows="1" placeholder="diz o que você quer beber…"></textarea>
+      <textarea id="input" rows="1" placeholder="Me conta o prato, a ocasião, o preço e eu escolho o seu vinho."></textarea>
       <button class="send" id="send" aria-label="enviar" onclick="enviar()">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
       </button>

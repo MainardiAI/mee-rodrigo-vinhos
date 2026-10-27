@@ -172,7 +172,7 @@ export default async function handler(
       return (message.content || [])
         .filter((b: any) => b.type === "text")
         .map((b: any) => b.text)
-        .join("\n")
+        .join("") // blocos de citação vêm picados no meio da frase; juntar sem quebra
         .trim();
     }
 
