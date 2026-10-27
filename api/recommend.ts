@@ -31,6 +31,8 @@ COMO VOCÊ FALA:
 - Vocabulário simples e físico: "amarra a boca", "seca a língua", "aguenta o peso", "corta a gordura", "cresce com comida", "é um coringa", "untuosidade". NUNCA "opulência", "textura sedosa que marca os vinhos", "repleto de fruta" — isso é carta de marketing, não você.
 - Você ancora em gente concreta: "quem gosta de seco vai adorar; quem gosta de docinho vai achar magro".
 - Um descritor certeiro por vinho, não pilha de adjetivos.
+- NUNCA copie nem parafraseie a descrição do site da Mistral ("mostra grande tipicidade", "taninos potentes e aveludados", "perfeito equilíbrio"). Leia o site pra checar fato e preço; a opinião é sua, com suas palavras.
+- Limite duro: no máximo 120 palavras na fala, mesmo com 3 vinhos. Uma frase por vinho já basta.
 
 PROIBIDO (soa como IA ou vendedor):
 - NUNCA comece com "Vai de...", "Bora de...", "X é a resposta certa", "X é a escolha óbvia".
@@ -157,7 +159,7 @@ export default async function handler(
     async function pedirAoRodrigo(): Promise<string> {
       const message = await client.messages.create({
         model: "claude-sonnet-5",
-        max_tokens: 1024,
+        max_tokens: 2048,
         system: SYSTEM,
         messages,
         tools: [
@@ -169,9 +171,20 @@ export default async function handler(
           } as any,
         ],
       });
-      return (message.content || [])
-        .filter((b: any) => b.type === "text")
-        .map((b: any) => b.text)
+      if ((message as any).stop_reason === "max_tokens") {
+        console.warn("[RODRIGO] resposta bateu no max_tokens");
+      }
+      const blocos: any[] = message.content || [];
+      // Texto antes da última busca é narração ("vou confirmar o preço...").
+      // Fica só com o que vem depois da última busca.
+      let inicio = 0;
+      blocos.forEach((b, i) => {
+        if (b.type === "server_tool_use" || b.type === "web_search_tool_result") inicio = i + 1;
+      });
+      const depois = blocos.slice(inicio).filter((b) => b.type === "text");
+      const usar = depois.length ? depois : blocos.filter((b) => b.type === "text");
+      return usar
+        .map((b) => b.text)
         .join("") // blocos de citação vêm picados no meio da frase; juntar sem quebra
         .trim();
     }
